@@ -1,17 +1,34 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using dotnet_rpg_web_api.Services.CharacterService;
 using Microsoft.AspNetCore.Mvc;
 
 namespace dotnet_rpg_web_api.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/[controller]/[Action]")]
 [ApiController]
 public class CharacterController : ControllerBase
 {
-    private static Character Knight = new Character();
+    private readonly ICharacterService _characterService;
 
-    [HttpGet(Name = "GetKnight")]
-    public ActionResult<Character> Get()
+    public CharacterController(ICharacterService characterService)
     {
-        return Ok(Knight);
+        _characterService = characterService;
+    }
+
+    [HttpGet()]
+    public async Task<ActionResult<List<Character>>> GetAll()
+    {
+        return Ok(await _characterService.GetAllCharacters());
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<Character>> GetCharacter(int id)
+    {
+        return Ok(await _characterService.GetCharacterById(id));
+    }
+
+    [HttpPost()]
+    public async Task<ActionResult<List<Character>>> AddCharacter([FromBody] Character character)
+    {
+        return Ok(await _characterService.AddCharacter(character));
     }
 }
