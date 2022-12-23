@@ -5,32 +5,28 @@ namespace dotnet_rpg_web_api.Services.CharacterService;
 public class CharacterService : ICharacterService
 {
     private readonly IMapper _mapper;
+    private readonly DataContext _context;
 
-    public CharacterService(IMapper mapper)
+    public CharacterService(IMapper mapper, DataContext context)
     {
         _mapper = mapper;
+        _context = context;
     }
-
-    private static List<Character> _characters = new()
-    {
-        new Character(),
-        new Character() { Id = 1, Name = "Sam"}
-    };
 
     public async Task<ServiceResponse<List<GetCharacterResponseDto>>> GetAllCharacters()
     {
-        var characters = _characters;
+        var characters = await _context.Characters.ToListAsync();
         
         var serviceResponse = new ServiceResponse<List<GetCharacterResponseDto>>
         {
-            Data = _characters.Select(c=>_mapper.Map<GetCharacterResponseDto>(c)).ToList()
+            Data = characters.Select(c=>_mapper.Map<GetCharacterResponseDto>(c)).ToList()
         };
         return serviceResponse;
     }
 
     public async Task<ServiceResponse<GetCharacterResponseDto?>> GetCharacterById(int id)
     {
-        var character = _characters.FirstOrDefault(c => c.Id == id);
+        var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id);
 
         var serviceResponse = new ServiceResponse<GetCharacterResponseDto?>
         {
@@ -43,12 +39,12 @@ public class CharacterService : ICharacterService
     public async Task<ServiceResponse<List<GetCharacterResponseDto>>> AddCharacter(AddCharacterRequestDto newCharacter)
     {
         var character = _mapper.Map<Character>(newCharacter);
-        character.Id = _characters.Max(c => c.Id) + 1;
-        _characters.Add(character);
+        _context.Characters.Add(character);
+        await _context.SaveChangesAsync();
 
         var serviceResponse = new ServiceResponse<List<GetCharacterResponseDto>>
         {
-            Data = _characters.Select(c=> _mapper.Map<GetCharacterResponseDto>(c)).ToList()
+            Data = await _context.Characters.Select(c=> _mapper.Map<GetCharacterResponseDto>(c)).ToListAsync()
         };
 
         return serviceResponse;
@@ -60,12 +56,13 @@ public class CharacterService : ICharacterService
 
         try
         {
-            var character = _characters.FirstOrDefault(c => c.Id == updatedCharacter.Id);
+            var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id);
             if (character == null)
                 throw new NullReferenceException($"Character with Id '{updatedCharacter.Id}' not found");
 
             _mapper.Map(updatedCharacter, character);
 
+            await _context.SaveChangesAsync();
             serviceResponse.Data = _mapper.Map<GetCharacterResponseDto>(character);
         }
         catch (Exception ex)
@@ -83,15 +80,15 @@ public class CharacterService : ICharacterService
 
         try
         {
-            var character = _characters.FirstOrDefault(c => c.Id == id);
+            var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id);
             if (character == null)
                 throw new NullReferenceException($"Character with Id '{id}' not found");
 
-            _characters.Remove(character);
+            _context.Characters.Remove(character);
+            
+            await _context.SaveChangesAsync();
 
-            //_mapper.Map(updatedCharacter, character);
-
-            serviceResponse.Data = _characters.Select(c => _mapper.Map<GetCharacterResponseDto>(c)).ToList();
+            serviceResponse.Data = _context.Characters.AsQueryable().Select(c => _mapper.Map<GetCharacterResponseDto>(c)).ToList();
         }
         catch (Exception ex)
         {
