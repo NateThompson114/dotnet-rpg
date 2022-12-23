@@ -1,4 +1,5 @@
-﻿using dotnet_rpg_web_api.Services.CharacterService;
+﻿using dotnet_rpg_web_api.Models;
+using dotnet_rpg_web_api.Services.CharacterService;
 using Microsoft.AspNetCore.Mvc;
 
 namespace dotnet_rpg_web_api.Controllers;
@@ -36,6 +37,13 @@ public class CharacterController : ControllerBase
     public async Task<ActionResult<ServiceResponse<List<GetCharacterResponseDto>>>> UpdateCharacter([FromBody] UpdateCharacterRequestDto character)
     {
         var result = await _characterService.UpdateCharacter(character);
+        return result.Success ? Ok(result) : NotFound(result);
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> DeleteCharacter(int id)
+    {
+        var result = await _characterService.DeleteCharacter(id);
         return result.Success ? Ok(result) : NotFound(result);
     }
 }

@@ -66,14 +66,32 @@ public class CharacterService : ICharacterService
 
             _mapper.Map(updatedCharacter, character);
 
-            //character.Name = updatedCharacter.Name;
-            //character.Hitpoints = updatedCharacter.Hitpoints;
-            //character.Strength = updatedCharacter.Strength;
-            //character.Defense = updatedCharacter.Defense;
-            //character.Intelligence = updatedCharacter.Intelligence;
-            //character.Class = updatedCharacter.Class;
-
             serviceResponse.Data = _mapper.Map<GetCharacterResponseDto>(character);
+        }
+        catch (Exception ex)
+        {
+            serviceResponse.Success = false;
+            serviceResponse.Message = ex.Message;
+        }
+
+        return serviceResponse;
+    }
+
+    public async Task<ServiceResponse<List<GetCharacterResponseDto>>> DeleteCharacter(int id)
+    {
+        var serviceResponse = new ServiceResponse<List<GetCharacterResponseDto>>();
+
+        try
+        {
+            var character = _characters.FirstOrDefault(c => c.Id == id);
+            if (character == null)
+                throw new NullReferenceException($"Character with Id '{id}' not found");
+
+            _characters.Remove(character);
+
+            //_mapper.Map(updatedCharacter, character);
+
+            serviceResponse.Data = _characters.Select(c => _mapper.Map<GetCharacterResponseDto>(c)).ToList();
         }
         catch (Exception ex)
         {
