@@ -15,20 +15,27 @@ public class CharacterController : ControllerBase
     }
 
     [HttpGet()]
-    public async Task<ActionResult<ServiceResponse<List<Character>>>> GetAll()
+    public async Task<ActionResult<ServiceResponse<List<GetCharacterResponseDto>>>> GetAll()
     {
         return Ok(await _characterService.GetAllCharacters());
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<ServiceResponse<Character>>> GetCharacter(int id)
+    public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> GetCharacter(int id)
     {
         return Ok(await _characterService.GetCharacterById(id));
     }
 
     [HttpPost()]
-    public async Task<ActionResult<ServiceResponse<List<Character>>>> AddCharacter([FromBody] Character character)
+    public async Task<ActionResult<ServiceResponse<List<GetCharacterResponseDto>>>> AddCharacter([FromBody] AddCharacterRequestDto character)
     {
         return Ok(await _characterService.AddCharacter(character));
+    }
+
+    [HttpPut()]
+    public async Task<ActionResult<ServiceResponse<List<GetCharacterResponseDto>>>> UpdateCharacter([FromBody] UpdateCharacterRequestDto character)
+    {
+        var result = await _characterService.UpdateCharacter(character);
+        return result.Success ? Ok(result) : NotFound(result);
     }
 }
