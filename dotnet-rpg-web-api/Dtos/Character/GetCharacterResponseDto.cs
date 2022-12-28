@@ -1,4 +1,5 @@
-﻿using dotnet_rpg_web_api.Statics;
+﻿using dotnet_rpg_web_api.Dtos.Weapon;
+using dotnet_rpg_web_api.Statics;
 
 namespace dotnet_rpg_web_api.Dtos.Character;
 
@@ -11,4 +12,5 @@ public class GetCharacterResponseDto
     public int Defense { get; set; } = 10;
     public int Intelligence { get; set; } = 10;
     public RpgClass Class { get; set; } = RpgClass.Knight;
+    public GetWeaponResponseDto? Weapon { get; set; }
 }
