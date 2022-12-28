@@ -1,12 +1,18 @@
-﻿namespace dotnet_rpg_web_api.Data;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+
+namespace dotnet_rpg_web_api.Data;
 
 public class AuthRepository : IAuthRepository
 {
     private readonly DataContext _context;
+    private readonly IConfiguration _configuration;
 
-    public AuthRepository(DataContext context)
+    public AuthRepository(DataContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
     }
 
     public async Task<ServiceResponse<int>> Register(User user, string password)
@@ -53,7 +59,7 @@ public class AuthRepository : IAuthRepository
         }
         else
         {
-            response.Data = user.Id.ToString();
+            response.Data = CreateToken(user);
         }
 
         return response;
@@ -78,5 +84,35 @@ public class AuthRepository : IAuthRepository
 
         var computeHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
         return computeHash.SequenceEqual(passwordHash);
+    }
+
+    private string CreateToken(User user)
+    {
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Name, user.Username)
+        };
+
+        var secret = _configuration.GetSection("TokenSettings:Secret").Value;
+
+        if (secret == null)
+            throw new Exception("TokenSettings is empty");
+
+        var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secret));
+
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddDays(1),
+            SigningCredentials = credentials
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        
+        return tokenHandler.WriteToken(token);
     }
 }

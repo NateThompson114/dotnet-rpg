@@ -1,9 +1,11 @@
-﻿using dotnet_rpg_web_api.Models;
+﻿using System.Security.Claims;
 using dotnet_rpg_web_api.Services.CharacterService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace dotnet_rpg_web_api.Controllers;
 
+[Authorize]
 [Route("api/[controller]/[Action]")]
 [ApiController]
 public class CharacterController : ControllerBase
