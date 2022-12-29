@@ -48,4 +48,10 @@ public class CharacterController : ControllerBase
         var result = await _characterService.DeleteCharacter(id);
         return result.Success ? Ok(result) : NotFound(result);
     }
+
+    [HttpPost]
+    public async Task<ActionResult<ServiceResponse<GetCharacterResponseDto>>> AddSkill([FromBody] AddCharacterSkillDto newCharacterSkill)
+    {
+        return Ok(await _characterService.AddCharacterSkill(newCharacterSkill));
+    }
 }
